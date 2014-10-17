@@ -26,17 +26,21 @@ class RandFS:
         self._files_size = files_size
         return self
 
+    @staticmethod
+    def _get_random_name():
+        return ''.join(
+            random.choice(string.ascii_uppercase + string.digits + string.ascii_lowercase) for _ in range(10))
+
     def create(self):
         if self._hash is None:
             self._hash = random.getrandbits(128)
-        random.seed(hash)
+        random.seed(self._hash)
 
-        random_name = ''.join(
-            random.choice(string.ascii_uppercase + string.digits + string.ascii_lowercase) for _ in range(10))
+        os.mkdir(self._get_random_name())
         return self._hash
 
 
 if __name__ == '__main__':
-    fs = RandFS()
+    fs = RandFS(hash='278923569719323934022449651675688586450')
     result = fs.create_folders(10).create_files(4).with_file_size(10000).create()
     print(result)
