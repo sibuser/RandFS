@@ -13,7 +13,6 @@ class RandFS:
                          string.digits + \
                          string.ascii_lowercase
 
-
         self._top = len(os.getcwd().split(os.sep))
         self._max_dirs = 5
         self._max_depth = 3
@@ -31,6 +30,29 @@ class RandFS:
     def get_hash(self):
         return self._hash
 
+    def _is_max_depth_reached(self):
+        depth = len(os.getcwd().split(os.sep))
+        return depth - self._top > self._max_depth
+
+    def _genrate_folders(self):
+        path = os.getcwd()
+        dir_list = []
+        num_dirs = random.randrange(self._max_dirs)
+        for _ in range(num_dirs):
+            folder_name = self._get_random_name()
+            if not os.path.isdir(folder_name):
+                os.mkdir(folder_name)
+                dir_list.append(os.path.join(path, folder_name))
+        return dir_list
+
+    def _generate_files(self):
+        number_files = random.randrange(self._max_files)
+        for _ in range(number_files):
+            file_name = self._get_random_name()
+            file_size = random.randrange(self._max_size)
+            with open(file_name, 'wb') as f:
+                f.write(os.urandom(file_size))
+
     def create_fs(self, path=None):
         if path is None:
             if os.path.isdir('test'):
@@ -40,30 +62,16 @@ class RandFS:
         else:
             os.chdir(path)
 
-        path = os.getcwd()
-        number_files = random.randrange(self._max_files)
-        for _ in xrange(number_files):
-            file_name = self._get_random_name()
-            file_size = random.randrange(self._max_size)
-            with open(file_name, 'wb') as f:
-                f.write(os.urandom(file_size))
+        self._generate_files()
 
-        depth = len(os.getcwd().split(os.sep))
-
-        if (depth - self._top) > self._max_depth:
+        if self._is_max_depth_reached():
             return
-        dir_list = []
-        num_dirs = random.randrange(self._max_dirs)
-        for _ in xrange(num_dirs):
-            folder_name = self._get_random_name()
-            if not os.path.isdir(folder_name):
-                os.mkdir(folder_name)
-                dir_list.append(os.path.join(path, folder_name))
 
-        for folder in dir_list:
+        for folder in self._genrate_folders():
             self.create_fs(folder)
         return self
 
+
 if __name__ == '__main__':
     fs = RandFS(hash_str='278923569719323934022449651675688586450')
-    print fs.create_fs().get_hash()
+    print(fs.create_fs().get_hash())
