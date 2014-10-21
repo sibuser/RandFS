@@ -5,19 +5,20 @@ import os
 import random
 import string
 import shutil
-
+import argparse
 
 class RandFS:
-    def __init__(self, hash_str=None):
+    def __init__(self, hash_str=None, max_dirs=1, max_depth=1, max_files=1,
+                 max_size=1):
         self._rand_set = string.ascii_uppercase + \
                          string.digits + \
                          string.ascii_lowercase
 
         self._top = len(os.getcwd().split(os.sep))
-        self._max_dirs = 5
-        self._max_depth = 3
-        self._max_files = 4
-        self._max_size = 10
+        self._max_dirs = max_dirs
+        self._max_depth = max_depth
+        self._max_files = max_files
+        self._max_size = max_size
         self._hash = hash_str
         if self._hash is None:
             self._hash = random.getrandbits(128)
@@ -34,7 +35,7 @@ class RandFS:
         depth = len(os.getcwd().split(os.sep))
         return depth - self._top > self._max_depth
 
-    def _genrate_folders(self):
+    def _generate_folders(self):
         path = os.getcwd()
         dir_list = []
         num_dirs = random.randrange(self._max_dirs)
@@ -67,11 +68,33 @@ class RandFS:
         if self._is_max_depth_reached():
             return
 
-        for folder in self._genrate_folders():
+        for folder in self._generate_folders():
             self.create_fs(folder)
         return self
 
 
-if __name__ == '__main__':
-    fs = RandFS(hash_str='278923569719323934022449651675688586450')
+def main(args=None):
+    """
+    :param args:
+    :return: 0 if everything is OK
+             1 if something went wrong
+             2 if invalid usage
+    """
+    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description='Generate pseudo random file tree.',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('--max-depth', default=1, help='Max depth of a tree')
+    parser.add_argument('--max-files', default=1, help='Max amount of files in each folder')
+    parser.add_argument('--max-size',  default=1, help='Max size of a file')
+    parser.add_argument('--max-dirs',  default=1, help='Max amount of folders in each folder')
+    parser.add_argument('--hash-str',  default='', help='String will be used for reproducing a previously created file tree')
+
+    opts = parser.parse_args(args)
+    # fs = RandFS(hash_str='278923569719323934022449651675688586450')
+    fs = RandFS()
     print(fs.create_fs().get_hash())
+
+
+if __name__ == '__main__':
+    main()
